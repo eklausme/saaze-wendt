@@ -1,0 +1,9 @@
+title: Publico - Autor Wolfram Ackner
+subtitle: "Wolfram Ackner, 47, nahm 1989 an den Leipziger Montagsdemonstrationen teil, lebte einige Zeit als Punk und baute sich später eine Radikalexistenz als Schweißer, Familienvater und Hausbesitzer am Stadtrand von Leipzig auf. Ackner ist regelmäßiger Autor auf <a href=https://www.achgut.com>www.achgut.com</a>."
+sort_field: date
+sort_direction: desc
+index_route: /author/wolfram-ackner
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Wolfram Ackner');

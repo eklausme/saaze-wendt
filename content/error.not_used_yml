@@ -1,0 +1,5 @@
+title: Publico
+sort_field: date
+sort_direction: desc
+entry_route: /{slug}
+uglyURL: true

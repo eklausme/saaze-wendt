@@ -1,0 +1,9 @@
+title: Publico - Autor David Berger
+subtitle: "David Berger (Jg. 1968) war nach Promotion (Dr. phil.) und Habilitation (Dr. theol.) viele Jahre Professor im Vatikan. 2010 Outing: Es erscheint das zum Besteller werdende Buch Der heilige Schein über seine Arbeit im Vatikan als homosexueller Mann. Anschließend zwei Jahre Chefredakteur eines Homomagazins, Rauswurf wegen zu offener Islamkritk. Seit 2016 Blogger (philosophia-perennis) und freier Journalist (u.a. für Die Zeit, Junge Freiheit, The European). Seine Bibliographie wissenschaftlicher Schriften umfasst ca. 1.000 Titel."
+sort_field: date
+sort_direction: desc
+index_route: /author/david-berger
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'David Berger');

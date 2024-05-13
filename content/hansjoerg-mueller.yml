@@ -1,0 +1,9 @@
+title: Publico - Autor Hansjörg Müller
+subtitle: "Hansjörg Müller ist Großbritannien-Korrespondent der „Basler Zeitung“."
+sort_field: date
+sort_direction: desc
+index_route: /author/hansjoerg-mueller
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Hansjörg Müller');

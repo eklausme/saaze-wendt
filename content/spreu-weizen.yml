@@ -1,0 +1,8 @@
+title: Publico - Spreu &amp; Weizen
+sort_field: date
+sort_direction: desc
+index_route: /spreu-weizen
+entry: false
+entry_route: /{slug}
+more: true
+filter: return (array_search('spreu-weizen',$entry->data['categories']) !== false); 

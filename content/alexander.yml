@@ -1,0 +1,9 @@
+title: Publico - Autor Alexander Wendt
+subtitle: "Alexander Wendt ist Herausgeber von Publico."
+sort_field: date
+sort_direction: desc
+index_route: /author/alexander
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Alexander Wendt');

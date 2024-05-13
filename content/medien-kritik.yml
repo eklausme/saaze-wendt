@@ -1,0 +1,8 @@
+title: Publico - Medien &amp; Kritik
+sort_field: date
+sort_direction: desc
+index_route: /medien-kritik
+entry: false
+entry_route: /{slug}
+more: true
+filter: return (array_search('medien-kritik',$entry->data['categories']) !== false); 

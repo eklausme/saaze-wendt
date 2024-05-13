@@ -1,0 +1,8 @@
+/build
+/raw
+/public/hashover
+/public/pagefind
+/vendor
+composer.lock
+composer.dev*
+.env

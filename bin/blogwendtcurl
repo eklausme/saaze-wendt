@@ -1,0 +1,17 @@
+#!/bin/perl -W
+# Download content from www.publicomag.com (Alexander Wendt) given a list of URLs
+# Elmar Klausmeier, 05-Mar-2024
+
+use strict;
+my $fn;
+my @F;
+
+while (<>) {
+	chomp;
+	@F = split('/');
+	$F[5] =~ s/a%cc%88/ä/;
+	$fn = $F[3] . '-' . $F[4] . '-' . $F[5] . '.html';
+	printf $fn . "\n";
+	`curl $_ -o $fn`;
+}
+

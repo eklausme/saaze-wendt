@@ -1,0 +1,9 @@
+title: Publico - Autorin Cora Stephan
+subtitle: "Cora Stephan, Publizistin und Schriftstellerin, wohnt abwechselnd im hessischen Vogelsberg und in Südfrankreich. Neben zehn Sachbüchern veröffentlichte sie ein gutes Dutzend Romane. Ihr jüngstes Sachbuch, „Angela Merkel. Ein Irrtum“, erschien 2011, ihr neuester Roman, „<a href=https://www.amazon.de/Ab-heute-hei%C3%9Fe-ich-Margo/dp/3462050648/>Ab heute heiße ich Margo</a>“ 2017 bei Kiepenheuer &amp; Witsch.<br><a href=https://www.cora-stephan.de/>Cora Stephan</a>"
+sort_field: date
+sort_direction: desc
+index_route: /author/cora-stephan
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Cora Stephan');

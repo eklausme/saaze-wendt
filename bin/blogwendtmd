@@ -1,0 +1,181 @@
+#!/bin/perl -W
+# Convert PublicoMag HTML pages to Markdown
+# Elmar Klausmeier, 06-Mar-2024
+# Elmar Klausmeier, 09-Mar-2024: tesseract of Alte&Weise images
+# Elmar Klausmeier, 19-Mar-2024: corrections + special cases
+# Elmar Klausmeier, 11-May-2024: handling comments
+
+
+use strict;
+use MIME::Base64;
+
+my ($flag,$altweise,$noTitle,$inFigure,$guestAuthor) = (0,"",0,0,0);
+my (@AW);	# array AW for use with tesseract
+
+
+my $targetDir = "/tmp/wendt";
+mkdir $targetDir if (! -d $targetDir);
+
+
+while (<>) {
+	# Create frontmatter
+	if (/^<link rel="canonical" href="https:\/\/www\.publicomag\.com\/(\d\d\d\d)\/(\d\d)\/([^"\/]+)\/"/) {
+		my ($year,$month,$fn) = ($1,$2,$3);
+		my $t = $targetDir.'/'.$year;
+		mkdir $t if (! -d $t);
+		$t .= '/' . $month . '-' . $fn . '.md';
+		open(F,">$t") || die("Cannot open $t");	# file pointer F
+		next;
+	} elsif (/^<meta property="article:published_time"\s+content="(\d\d\d\d-\d\d-\d\d)T(\d\d:\d\d:\d\d)\+\d\d:\d\d"/) {
+		print F "---\n";
+		print F "date: \"$1 $2\"\n";
+		next;
+	} elsif (/^<article id="post.+?\s+category-([^"]+)">/) {
+		my $t = $1;
+		$t =~ s/ category-/", "/g;	# possibly multiple categories
+		print F "categories: [$altweise\"$t\"]\n";
+		next;
+	} elsif (/^<meta property="og:image"\s+content="https:\/\/www\.publicomag\.com\/wp-content\/uploads\/\d+\/\d+\/(Alte-Weis[^"]+|AlteWeis[^"]+|Alte-u-Weise[^"]+|AlteuWeise[^"]+|AuW_[^"]+|aub_[^"]+|auw_[^"]+|auw-[^"]+|AW_[^"]+|a-u-w-[^"]+|OWilde[^"]+)"/) {
+		my $t = `tesseract -l deu $1 -`;
+		$t =~ s/"/“/g;
+		$t =~ s/\n\]//g;
+		$t =~ s/Zwetifel ist/Zweifel ist/;
+		@AW = split(/\n/,$t);
+		print F "title: \"Alte &amp; Weise: $AW[$#AW]\"\n";
+		$altweise = "\"alte-weise\", ";	# add this category in case of Alte & Weise
+		next;
+	} elsif (/^<meta property="og:title" content="- Publico"/) {
+		$noTitle = 1;
+	} elsif ($noTitle && /<meta property="og:image" content="https:\/\/www\.publicomag\.com\/wp-content\/uploads\/\d+\/\d+\/([^"]+)"/) {
+		if ($1 eq 'Sommergruss.jpg') { print F "title: \"Sommergruß\"\n"; next; }
+		my $t = `tesseract -l deu $1 -`;
+		@AW = split(/\n/,$t);
+		printf("%s: noTitle=%d, pic=%s, title=%s\n",$ARGV[0],$noTitle,$1,$AW[0]);
+		print F "title: \"" . $AW[0] . "\"\n";
+	} elsif (/^<h1 class="post-title">(.+?)<\/h1>/) {
+		print F "title: \"$1\"\n";
+		next;
+	} elsif (/^<h4 class="post-subtitle">(.+)<\/h4>$/) {
+		print F "subtitle: \"$1\"\n";
+		next;
+	} elsif (/^Von <em class="fn"><a href="https:.+ title="Beiträge von ([^"]+)" /) {
+		print F "author: \"$1\"\n";
+		print F "---\n\n";
+		next;
+	}
+
+	if (/^<figure /) { $inFigure = 1; $_ = "<figure>\n"; }
+	elsif (/^<\/figure/) { $inFigure = 0; }
+	elsif ($inFigure && /^<img /) {
+		if (/(https:\/\/www\.publicomag\.com\/wp-content\/uploads)\/(\d+)\/(\d+)\/([^\/]+)\.(jpg|jpeg|png|webp)\s+\d+w(|")(|,)\s+sizes="\(max-width/) {
+			my ($fn,$ext) = ("$1/$2/$3/$4",$5);
+			if ($fn =~ /(\-\d+x\d+)$/) {
+				my $fn2 = substr($fn,0,length($fn)-length($1));
+				my $fn2ext = $fn2 . '.' . $ext;
+				$fn = $fn2 if (index($_,$fn2ext) >= 0);
+				# Special case due to: "image cannot be displayed because it contains errors"
+				$fn = 'https://www.publicomag.com/wp-content/uploads/2023/05/Schuelerwissen-1035x715'
+					if ($fn eq 'https://www.publicomag.com/wp-content/uploads/2023/05/Schuelerwissen-1320x912');
+			}
+			$_ = "<img src=\"$fn.$ext\" alt=stdsize>\n";
+		}
+	}
+
+	if (length($altweise) > 4) {
+		if (/^<div class="isopad">/) { $flag = 1; next; }
+	} else {
+		if (/^<div class="post_content">/) { $flag = 1; next; }
+		next if (/^<div class="isopad">/);
+	}
+	if (/^<div class="shariff shariff-align|^<div class="ShariffHeadline"><\/div>|Liebe Leser von Publico: Die/) { $flag = 0; next; }
+
+	# Include comments
+	next if (/^<div id="comment|^<div class="wrapper|^<div class="extra-wrap|^<div class="comment-author|^<div class="reply/);
+	if (/^<ul class="pinglist">/) { $flag = 0; next; }
+	elsif (/<h5 class="comments-h">/) {
+		my $line = "\n<!--more-->\n$_";
+		# Write Alte&Weise text, which we previously converted from image via tesseract
+		$flag = 0;
+		for (@AW) {
+			if (/^„/) { $flag = 1; }
+			if ($flag) {
+				$flag = 2 if (/“$/);
+				next if ($flag == 1 &&  length($_) <= 3);
+				print F ">> $_\n";
+			}
+		}
+		$flag = 1;
+		print F $line;
+		next;
+	}
+	next if ($flag == 0);
+
+
+	if ($guestAuthor == 0 && /^<p>(<strong><em>|<em><strong>)*(Von|von)\s+([^ ]+\s+[^<>\/ ]+)(|\s+\w+)(<\/em><\/strong>|<\/strong><\/em>)*<\/p>/) {
+		$_ = "##### Von $3$4\n\n";
+		$guestAuthor = 1;
+	}
+	s/^\s*<p>&nbsp;<\/p>\s*$/\n/;
+
+	s/(\xc2\xa0)+/ /g;	# non-breakable space in source
+	s/<em>„<\/em><em>/_„/;	# special case for 2019-11-die-grosse-hitler-stalin...html + 6 other files
+	s/<em>„<\/em>/_„/;	# dto.
+	s/ARD reagiert.“<\/p>/ARD reagiert.“_/;	# dto.
+	s/ <\/em>schreibt Martin Schulz<em>: /_ schreibt Martin Schulz: _/;	# special case for 2018-01-der-wochenrueckblick...html
+
+	# special case for 2017-12-die-drehs-der-dreher.html
+	s/<span class>\s+//g;
+	if (/<p class="Text"><b class><span class>(.+)<\/span><\/b>\s*<b class><\/b><\/p>/) {
+		$_ = "\n\n\n### $1\n";
+		s/<b class>|<\/b>|<span class>|<\/span>//g;
+	}
+	s/<\/span><span class>//g;
+	s/<span class>//g;
+	s/([ÄÖÜäöüß]+)<\/span>/$1/g;
+
+	s/&#8220;/«/g;
+	s/&#8221;/»/g;
+	s/([^ ])<em> „/$1 _„/g;
+	s/“ <\/em>/“_ /g;
+	s/ (der|die|das)<em> / $1 _/g;
+	s/<em>/_/g;
+	s/(\s*|&nbsp;)<\/em></_</g;	# special case for </em></br>
+	s/<\/em>/_/g;
+
+	s/(|<\/p>)<span id="more.\d+"><\/span><br\/>\s*/\n\n<!--more-->\n\n/;
+	s/(|<\/p>)<span id="more.\d+"><\/span>\s*/\n\n<!--more-->\n\n/;
+	s/^<p>/\n\n/;
+	s/<p class=([^>]+)>/\n/;
+	s/<\/p>\s*$//;
+	s/<\/p>\s*/\n\n/;
+	if (/Dieser Text erscheint auch auf.+Tichys Einblick/) { $_ = "Dieser Text erscheint auch auf [_Tichys Einblick_](https://www.tichyseinblick.de/).\n\n";  $flag = 0; }
+	s/<hr\/>/\n<p class=grayhr><\/p>\n/;
+	s/^<h2>/\n\n\n## /;
+	s/<\/h(2|3)>\s*$//;
+	s/^<h3>/\n\n\n### /;
+
+	if (/^<div class="(BorlabsCookie _brlbs-cb-youtube|borlabs-hide" data-borlabs-cookie-type="content-blocker" data-borlabs-cookie-id="youtube)">.*<script type="text\/template">([^<]+)<\/script><\/div>(|<\/div>)/) {
+		my $t = decode_base64($2);
+		$t =~ s/\?feature=oembed//;
+		if ($t =~ /"https:\/\/www\.youtube(\-nocookie)\.com\/embed\/([^"]+)"/) {
+			$_ = "\n\n[youtube]${2}[/youtube]\n\n";
+		} else { $_ = "\n\nUnidentifiable YouTube video\n\n"; }
+	} elsif (/^<div class="BorlabsCookie _brlbs-cb-vimeo">.+<script type="text\/template">([^<]+)<\/script><\/div><\/div>/) {
+		my $t = decode_base64($1);
+		print "t=$t\n";
+		if ($t =~ /"https:\/\/player\.vimeo\.com\/video\/(\d+)\?/) {
+			$_ = "\n\n[vimeo]${1}[/vimeo]\n\n";
+		} else { $_ = "\n\nUnidentifiable Vimeo video\n\n"; }
+	} elsif (/<div class="BorlabsCookie _brlbs-cb-youtube">|<div class="_brlbs-content-blocker">|<div class="_brlbs-embed _brlbs-video-youtube">|Mit dem Laden des Videos akzeptieren Sie die Datenschutzerklärung von YouTube|<a class="_brlbs-btn _brlbs-icon-play-white"|<div class="_brlbs-caption">|<small>YouTube immer entsperren<\/small>/) {
+		next;
+	}
+
+	s/<div class="thumb-container">//g;
+	s/<\/div>//g;
+	s/<br\/>/<br>/g;	# According Nu HTML Checker: Trailing slash on void elements has no effect and interacts badly with unquoted attribute values.
+	s/\s*<div class="clear">//;
+
+	print F;
+}
+
+

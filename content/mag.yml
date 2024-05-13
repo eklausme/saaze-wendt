@@ -1,0 +1,7 @@
+title: Publico
+sort_field: date
+sort_direction: desc
+index_route: /
+entry_route: /{slug}
+more: true
+rss: true

@@ -1,0 +1,9 @@
+title: Publico - Autor Archi W. Bechlenberg
+subtitle: "Archi W. Bechlenberg, 64, ist Buchautor und regelmäßiger Kolumnist auf der Achse des Guten. Er ist studierter Kunsthistoriker und Grafiker und arbeitete unter zahlreichen Namen für zahlreiche nationale und internationale Magazine als Journalist."
+sort_field: date
+sort_direction: desc
+index_route: /author/archi-bechlenberg
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Archi W. Bechlenberg');

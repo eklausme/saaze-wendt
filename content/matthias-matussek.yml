@@ -1,0 +1,8 @@
+title: Publico - Autor Matthias Matussek
+sort_field: date
+sort_direction: desc
+index_route: /author/matthias-matussek
+entry: false
+entry_route: /{slug}
+more: true
+filter: return ($entry->data['author'] === 'Matthias Matussek');

@@ -1,0 +1,8 @@
+title: Publico - Politik &amp; Gesellschaft
+sort_field: date
+sort_direction: desc
+index_route: /politik-gesellschaft
+entry: false
+entry_route: /{slug}
+more: true
+filter: return (array_search('politik-gesellschaft',$entry->data['categories']) !== false); 

@@ -1,0 +1,8 @@
+title: Publico - Fake News
+sort_field: date
+sort_direction: desc
+index_route: /fake-news
+entry: false
+entry_route: /{slug}
+more: true
+filter: return (array_search('fake-news',$entry->data['categories']) !== false); 
