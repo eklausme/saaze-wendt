@@ -60,7 +60,7 @@ This runtime is single threaded (one core). Using multithreading this runtime cu
 The static site generator _Simplified Saaze_ is known to be more than 10-times faster than Hugo, see [Performance Comparison Saaze vs. Hugo vs. Zola](https://eklausmeier.goip.de/blog/2021/11-13-performance-comparison-saaze-vs-hugo-vs-zola).
 
 The resulting static site is served three times faster than the WordPress site from Frankfurt and San Francisco as checked by [Pingdom](https://tools.pingdom.com).
-See [Performance Comparison of Wendt Website: WordPress vs. Simplified Saaze](https://eklausmeier.goip.de/blog/2024/01-14-performance-comparison-of-wendt-website-wordpress-vs-simplified-saaze).
+See [Performance Comparison of Wendt Website: WordPress vs. Simplified Saaze](https://eklausmeier.goip.de/blog/2024/05-14-performance-comparison-of-wendt-website-wordpress-vs-simplified-saaze).
 
 If you want to check the numbers, use:
 ```
