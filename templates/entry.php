@@ -21,11 +21,7 @@
 			) : ''?>
 		/ <?=$entry['minutes_read']?> min Lesezeit</p>
 
-<?php	/* <?= $entry['content'] ?> */
-	$s = str_replace('*%3C?','<?',$entry['content']);
-	$s = str_replace('?%3E*','?>',$s);
-	require 'data:text/plain;base64,'.base64_encode($s);
-?>
+<?php eval( '?>' . str_replace('?%3E*','?>',str_replace('*%3C?','<?',$entry['content'])) ); ?>
 
 <?php if ($entry['donate'] ?? true) { ?>
 	<p></p><p>Original: <a href="https://www.publicomag.com<?=$canonical?>"><?=$mtitle?></a></p>
